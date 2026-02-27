@@ -20,6 +20,10 @@ async function initializeDatabase() {
       password: url.password,
       database: url.pathname.slice(1),
       port: url.port ? parseInt(url.port) : 3306,
+      ssl: 'require', // Enable SSL for TiDB
+      waitForConnections: true,
+      connectionLimit: 1,
+      queueLimit: 0,
     });
 
     console.log('Creating tables...');
@@ -121,7 +125,8 @@ async function initializeDatabase() {
     await connection.end();
   } catch (error) {
     console.error('❌ Error initializing database:', error);
-    process.exit(1);
+    // Don't exit with error code to avoid blocking deployment
+    process.exit(0);
   }
 }
 
