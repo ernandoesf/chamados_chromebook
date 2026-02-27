@@ -114,11 +114,44 @@
 }
 
 @layer base {
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    background-image: 
+      linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+      linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-attachment: fixed;
+  }
+
+  /* Blueprint Grid Pattern */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      linear-gradient(0deg, transparent 24%, rgba(59, 130, 246, 0.05) 25%, rgba(59, 130, 246, 0.05) 26%, transparent 27%, transparent 74%, rgba(59, 130, 246, 0.05) 75%, rgba(59, 130, 246, 0.05) 76%, transparent 77%, transparent),
+      linear-gradient(90deg, transparent 24%, rgba(59, 130, 246, 0.05) 25%, rgba(59, 130, 246, 0.05) 26%, transparent 27%, transparent 74%, rgba(59, 130, 246, 0.05) 75%, rgba(59, 130, 246, 0.05) 76%, transparent 77%, transparent);
+    background-size: 50px 50px;
+    background-attachment: fixed;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+    font-weight: 800;
+    letter-spacing: -0.5px;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -131,6 +164,79 @@
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(30, 41, 59);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(59, 130, 246);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(37, 99, 235);
+}
+
+/* Selection Color */
+::selection {
+  background-color: rgb(59, 130, 246);
+  color: rgb(241, 245, 250);
+}
+
+/* Animation for loading states */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
+
+/* Slide in animation */
+@keyframes slide-in-from-top {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-from-top {
+  animation: slide-in-from-top 0.3s ease-in-out;
 }
 
 @layer components {
@@ -173,5 +279,63 @@
       padding-right: 2rem;
       max-width: 1280px; /* Standard content width */
     }
+  }
+
+  /* Technical Drawing Elements */
+  .technical-line {
+    @apply border-l-2 border-blue-500 pl-4;
+    position: relative;
+  }
+
+  .technical-line::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 0;
+    width: 8px;
+    height: 8px;
+    background-color: rgb(59, 130, 246);
+    border: 2px solid rgb(30, 41, 59);
+  }
+
+  .technical-line::after {
+    content: "";
+    position: absolute;
+    left: -8px;
+    bottom: 0;
+    width: 8px;
+    height: 8px;
+    background-color: rgb(59, 130, 246);
+    border: 2px solid rgb(30, 41, 59);
+  }
+
+  /* Blueprint Card */
+  .blueprint-card {
+    @apply bg-slate-800/50 backdrop-blur border border-slate-700 rounded-lg;
+    background-image: 
+      linear-gradient(90deg, rgba(59, 130, 246, 0.02) 1px, transparent 1px),
+      linear-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 1px);
+    background-size: 10px 10px;
+  }
+
+  /* Glowing Effect for Important Elements */
+  .glow-blue {
+    @apply shadow-lg;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.1);
+  }
+
+  .glow-red {
+    @apply shadow-lg;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3), 0 0 40px rgba(239, 68, 68, 0.1);
+  }
+
+  .glow-green {
+    @apply shadow-lg;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), 0 0 40px rgba(16, 185, 129, 0.1);
+  }
+
+  /* Smooth Transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
   }
 }

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, tickets, slaRules, ticketHistory, ticketStatusEnum, priorityEnum, problemTypeEnum } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,96 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Tickets queries
+export async function getNextTicketNumber(): Promise<string> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select({ ticketNumber: tickets.ticketNumber }).from(tickets).orderBy(tickets.id);
+  
+  // Extract the number from the last ticket (e.g., "CH-0001" -> 1)
+  const lastNumber = result.length > 0 ? parseInt(result[result.length - 1]?.ticketNumber?.split("-")[1] || "0") : 0;
+  const nextNumber = lastNumber + 1;
+  
+  return `CH-${String(nextNumber).padStart(4, "0")}`;
+}
+
+export async function createTicket(ticketData: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(tickets).values(ticketData);
+  return result;
+}
+
+export async function getTicketById(ticketId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(tickets).where(eq(tickets.id, ticketId)).limit(1);
+  
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getAllTickets() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return db.select().from(tickets).orderBy(tickets.dataAbertura);
+}
+
+export async function updateTicketStatus(
+  ticketId: number,
+  status: typeof ticketStatusEnum[number],
+  responsavel: string,
+  observacoes?: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get current ticket
+  const currentTicket = await db.select().from(tickets).where(eq(tickets.id, ticketId)).limit(1);
+  
+  if (currentTicket.length === 0) throw new Error("Ticket not found");
+  
+  const oldStatus = currentTicket[0].status;
+  
+  // Update ticket
+  const updateData: any = { status };
+  if (status === "resolvido") {
+    updateData.dataResolucao = new Date();
+    if (currentTicket[0].dataAbertura) {
+      const tempoMinutos = Math.floor((new Date().getTime() - currentTicket[0].dataAbertura.getTime()) / 60000);
+      updateData.tempoAtendimentoMinutos = tempoMinutos;
+    }
+  }
+  if (responsavel) updateData.responsavelAtendimento = responsavel;
+  if (observacoes) updateData.observacoesSolucao = observacoes;
+  
+  await db.update(tickets).set(updateData).where(eq(tickets.id, ticketId));
+  
+  // Log history
+  await db.insert(ticketHistory).values({
+    ticketId: ticketId,
+    statusAnterior: oldStatus,
+    statusNovo: status,
+    responsavel: responsavel,
+    observacoes: observacoes,
+  });
+}
+
+export async function getSLARules() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return db.select().from(slaRules);
+}
+
+export async function getSLARuleByProblemType(tipoProblema: typeof problemTypeEnum[number]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(slaRules).where(eq(slaRules.tipoProblema, tipoProblema)).limit(1);
+  
+  return result.length > 0 ? result[0] : null;
+}
