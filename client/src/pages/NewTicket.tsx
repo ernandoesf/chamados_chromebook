@@ -213,13 +213,13 @@ export default function NewTicket() {
                 <Label className="text-white font-bold">
                   Tipo de Problema <span className="text-red-500">*</span>
                 </Label>
-                <Select value={formData.tipoProblema} onValueChange={handleSelectChange}>
+                <Select value={formData.tipoProblema || ""} onValueChange={handleSelectChange}>
                   <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
                     <SelectValue placeholder="Selecione o tipo de problema" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
                     {problemTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value} className="text-white hover:bg-slate-600">
+                      <SelectItem key={type.value} value={type.value}>
                         {type.label}
                       </SelectItem>
                     ))}
