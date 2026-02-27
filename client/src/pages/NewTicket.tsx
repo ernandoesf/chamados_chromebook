@@ -34,16 +34,20 @@ export default function NewTicket() {
     tipoProblema: "",
     descricaoDetalhada: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const createTicketMutation = trpc.tickets.create.useMutation({
     onSuccess: (data) => {
       toast.success(data.message);
+      setIsLoading(false);
       setTimeout(() => {
         setLocation("/tickets");
       }, 1000);
     },
     onError: (error) => {
+      console.error("Error:", error);
       toast.error(error.message || "Erro ao criar chamado");
+      setIsLoading(false);
     },
   });
 
@@ -59,6 +63,7 @@ export default function NewTicket() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validations
     if (!formData.solicitante.trim()) {
       toast.error("Solicitante é obrigatório");
       return;
@@ -84,9 +89,36 @@ export default function NewTicket() {
       return;
     }
     
+    setIsLoading(true);
+    
+    // Ensure tipoProblema is one of the valid enum values
+    const validProblemTypes = [
+      "nao_liga",
+      "tela_quebrada",
+      "tela_sem_imagem",
+      "teclado_defeito",
+      "touchpad_defeito",
+      "problema_bateria",
+      "problema_carregador",
+      "sistema_travando",
+      "wifi_nao_conecta",
+      "outro"
+    ];
+    
+    if (!validProblemTypes.includes(formData.tipoProblema)) {
+      toast.error("Tipo de problema inválido");
+      setIsLoading(false);
+      return;
+    }
+    
     createTicketMutation.mutate({
-      ...formData,
+      solicitante: formData.solicitante.trim(),
+      email: formData.email.trim() || undefined,
+      unidadeEscolar: formData.unidadeEscolar.trim(),
+      patrimonioChromebook: formData.patrimonioChromebook.trim(),
+      numeroSerie: formData.numeroSerie.trim() || undefined,
       tipoProblema: formData.tipoProblema as any,
+      descricaoDetalhada: formData.descricaoDetalhada.trim(),
     });
   };
 
@@ -102,75 +134,87 @@ export default function NewTicket() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Solicitante */}
               <div className="space-y-2">
-                <Label htmlFor="solicitante" className="text-slate-200">Solicitante *</Label>
+                <Label htmlFor="solicitante" className="text-white font-bold">
+                  Solicitante <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="solicitante"
                   name="solicitante"
+                  placeholder="Nome do solicitante"
                   value={formData.solicitante}
                   onChange={handleChange}
-                  placeholder="Nome do solicitante"
-                  className="bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-200">Email</Label>
+                <Label htmlFor="email" className="text-white font-bold">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
+                  placeholder="email@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="email@example.com"
-                  className="bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               {/* Unidade Escolar */}
               <div className="space-y-2">
-                <Label htmlFor="unidadeEscolar" className="text-slate-200">Unidade Escolar *</Label>
+                <Label htmlFor="unidadeEscolar" className="text-white font-bold">
+                  Unidade Escolar <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="unidadeEscolar"
                   name="unidadeEscolar"
+                  placeholder="Ex: Sala 101, Laboratório de Informática"
                   value={formData.unidadeEscolar}
                   onChange={handleChange}
-                  placeholder="Ex: Sala 101, Laboratório de Informática"
-                  className="bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
-              {/* Patrimônio */}
+              {/* Patrimônio do Chromebook */}
               <div className="space-y-2">
-                <Label htmlFor="patrimonioChromebook" className="text-slate-200">Patrimônio do Chromebook *</Label>
+                <Label htmlFor="patrimonioChromebook" className="text-white font-bold">
+                  Patrimônio do Chromebook <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="patrimonioChromebook"
                   name="patrimonioChromebook"
+                  placeholder="Ex: CB-2024-001"
                   value={formData.patrimonioChromebook}
                   onChange={handleChange}
-                  placeholder="Ex: CB-2024-001"
-                  className="bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               {/* Número de Série */}
               <div className="space-y-2">
-                <Label htmlFor="numeroSerie" className="text-slate-200">Número de Série</Label>
+                <Label htmlFor="numeroSerie" className="text-white font-bold">
+                  Número de Série
+                </Label>
                 <Input
                   id="numeroSerie"
                   name="numeroSerie"
+                  placeholder="Número de série do equipamento"
                   value={formData.numeroSerie}
                   onChange={handleChange}
-                  placeholder="Número de série do equipamento"
-                  className="bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               {/* Tipo de Problema */}
               <div className="space-y-2">
-                <Label htmlFor="tipoProblema" className="text-slate-200">Tipo de Problema *</Label>
+                <Label className="text-white font-bold">
+                  Tipo de Problema <span className="text-red-500">*</span>
+                </Label>
                 <Select value={formData.tipoProblema} onValueChange={handleSelectChange}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
                     <SelectValue placeholder="Selecione o tipo de problema" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
@@ -185,33 +229,41 @@ export default function NewTicket() {
 
               {/* Descrição Detalhada */}
               <div className="space-y-2">
-                <Label htmlFor="descricaoDetalhada" className="text-slate-200">Descrição Detalhada *</Label>
+                <Label htmlFor="descricaoDetalhada" className="text-white font-bold">
+                  Descrição Detalhada <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                   id="descricaoDetalhada"
                   name="descricaoDetalhada"
+                  placeholder="Descreva o problema em detalhes (mínimo 10 caracteres)"
                   value={formData.descricaoDetalhada}
                   onChange={handleChange}
-                  placeholder="Descreva o problema em detalhes (mínimo 10 caracteres)"
                   rows={5}
-                  className="bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               {/* Buttons */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-4 pt-6">
                 <Button
                   type="submit"
-                  disabled={createTicketMutation.isPending}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={isLoading}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold"
                 >
-                  {createTicketMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {createTicketMutation.isPending ? "Criando..." : "Criar Chamado"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Criando...
+                    </>
+                  ) : (
+                    "Criar Chamado"
+                  )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setLocation("/")}
-                  className="flex-1 border-slate-600 text-slate-200 hover:bg-slate-700"
+                  onClick={() => setLocation("/tickets")}
+                  className="flex-1 border-slate-600 text-white hover:bg-slate-700"
                 >
                   Cancelar
                 </Button>
